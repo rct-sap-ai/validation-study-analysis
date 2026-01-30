@@ -1,0 +1,9 @@
+score,model1,model2,model3
+Overall Score,OpenAI GPT 5,Google Gemini Pro,Claude Sonnet
+No Errors,283 (82%),276 (80%),285 (83%)
+,,,
+Statistical Items,OpenAI GPT 5,Google Gemini Pro,Claude Sonnet
+No Errors,69 (70%),64 (65%),69 (70%)
+,,,
+Other Items,OpenAI GPT 5,Google Gemini Pro,Claude Sonnet
+No Errors,214 (87%),212 (86%),216 (88%)
