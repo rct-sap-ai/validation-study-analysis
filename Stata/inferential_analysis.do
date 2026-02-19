@@ -7,8 +7,32 @@ replace scored_accurately = . if score ==.
 encode spreadsheet_title, gen(trial_no)
 encode model, gen(model_no)
 
-  melogit scored_accurately i.model_no || trial_no: // fit models
+melogit scored_accurately i.model_no || trial_no: , or
 test _b[2.model]= _b[3.model] = 0 // test for differences between models
+estat icc
+
+
+melogit scored_accurately || trial_no: || item_no: , or // fit models
+est store A
+
+
+melogit scored_accurately i.model_no || trial_no: || item_no: , or // fit models
+test _b[2.model]= _b[3.model] = 0 // test for differences between models
+est store B
+
+lrtest A B
+
+estat icc
+
+meologit score || trial_no: || item_no: , or // fit models
+test _b[2.model]= _b[3.model] = 0 // test for differences between models
+estat icc
+
+
+
+meologit score i.model_no || trial_no: || item_no: , or // fit models
+test _b[2.model]= _b[3.model] = 0 // test for differences between models
+estat icc
 
 mat A = r(table)
 

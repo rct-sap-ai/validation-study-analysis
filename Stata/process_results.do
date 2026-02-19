@@ -1,4 +1,3 @@
- cd "/Users/k1811974/Library/CloudStorage/OneDrive-King'sCollegeLondon/Grants/MhAPS School Grant/sapai"
 
 import excel "Scoring results/scoring_key.xlsx", clear  firstrow
 tempfile key
@@ -7,14 +6,15 @@ keep if description != ""
 
 tab description
 duplicates report description
-
+rename Oursection subsection2
 save `key'
 
 import delimited using "Scoring results/prelim_results_v2.csv", clear varnames(1) 
 keep if description != ""
 recast  str2045 description
-merge m:1 description using `key', keepusing(item_no ItemCatgory )
-
+merge m:1 description using `key', keepusing(item_no ItemCatgory subsection2)
+drop subsection
+rename subsection2 subsection
 keep if _merge ==3
 
 rename gemini_pro  score_gemini_pro  
@@ -37,7 +37,7 @@ rename ItemCatgory item_cat
 save "Scoring results/combined_results.dta", replace
 
 
-keep item_no item_cat spreadsheet_title score*
+keep item_no item_cat spreadsheet_title score* subsection
 gen item_trial_no = _n
 reshape long score_, i(item_trial_no) j(model) string
 rename score_ score
