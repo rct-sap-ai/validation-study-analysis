@@ -9,9 +9,13 @@ duplicates report description
 rename Oursection subsection2
 save `key'
 
-import delimited using "Scoring results/prelim_results_v2.csv", clear varnames(1) 
+import delimited using "Scoring results/final_results_v3.csv", clear varnames(1) 
 keep if description != ""
 recast  str2045 description
+
+replace description = "Secondary analysis: Clear which analysis method applies to each secondary outcome, and which analysis population" if description == "Primary analysis: Clear which analysis method applies to each secondary outcome, and which analysis population" 
+replace description = "Secondary analysis: Correct model specification" if description == "Secondary: Correct model specification" 
+
 merge m:1 description using `key', keepusing(item_no ItemCatgory subsection2)
 drop subsection
 rename subsection2 subsection
