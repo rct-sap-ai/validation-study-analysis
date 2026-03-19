@@ -1,0 +1,515 @@
+------------------------------------------------------------------------------------------------------------------------------------------------------
+      name:  <unnamed>
+       log:  /Users/k1811974/Documents/Programming/SAPAI/validation-study-analysis/primary_analysis_log.txt
+  log type:  text
+ opened on:  19 Mar 2026, 14:19:45
+
+. 
+. **********************************************************************
+. *Primary analysis
+. **********************************************************************
+. post `postname' ("Overall Score") ("OpenAI GPT 5") ("Google Gemini Pro") ("Claude Sonnet") ("p-value")
+
+. 
+. 
+. **********************************************************************
+. * 1. Get Raw Counts (n) where scored_accurately == 1
+. **********************************************************************
+. count if scored_accurately == 1 & model_no == 1
+  331
+
+. local n_oai = r(N)
+
+. 
+. count if scored_accurately == 1 & model_no == 2
+  328
+
+. local n_g = r(N)
+
+. 
+. count if scored_accurately == 1 & model_no == 3
+  299
+
+. local n_claude = r(N)
+
+. 
+. **********************************************************************
+. * 2. Run Model and Get P-Value
+. **********************************************************************
+. melogit scored_accurately i.model_no || trial_no: || item_no: , or
+
+Fitting fixed-effects model:
+
+Iteration 0:  Log likelihood = -595.41905  
+Iteration 1:  Log likelihood = -594.94668  
+Iteration 2:  Log likelihood = -594.94642  
+Iteration 3:  Log likelihood = -594.94642  
+
+Refining starting values:
+
+Grid node 0:  Log likelihood = -534.81092
+
+Fitting full model:
+
+Iteration 0:  Log likelihood = -534.81092  (not concave)
+Iteration 1:  Log likelihood = -531.72441  
+Iteration 2:  Log likelihood = -528.33737  
+Iteration 3:  Log likelihood = -482.00309  
+Iteration 4:  Log likelihood = -476.12401  
+Iteration 5:  Log likelihood = -472.43775  
+Iteration 6:  Log likelihood = -467.42575  
+Iteration 7:  Log likelihood = -467.29355  
+Iteration 8:  Log likelihood = -467.26865  
+Iteration 9:  Log likelihood = -467.26159  
+Iteration 10: Log likelihood = -467.26053  
+Iteration 11: Log likelihood = -467.25983  
+Iteration 12: Log likelihood = -467.25931  
+Iteration 13: Log likelihood = -467.25884  
+Iteration 14: Log likelihood = -467.25839  
+Iteration 15: Log likelihood = -467.25799  
+Iteration 16: Log likelihood = -467.25762  
+Iteration 17: Log likelihood = -467.25728  
+Iteration 18: Log likelihood = -467.25697  
+Iteration 19: Log likelihood = -467.25669  
+Iteration 20: Log likelihood = -467.25644  
+Iteration 21: Log likelihood = -467.25621  
+Iteration 22: Log likelihood = -467.25601  
+Iteration 23: Log likelihood = -467.25582  
+Iteration 24: Log likelihood = -467.25566  
+Iteration 25: Log likelihood = -467.25551  
+Iteration 26: Log likelihood = -467.25538  
+Iteration 27: Log likelihood = -467.25526  
+Iteration 28: Log likelihood = -467.25516  
+Iteration 29: Log likelihood = -467.25506  
+Iteration 30: Log likelihood = -467.25498  
+Iteration 31: Log likelihood =  -467.2549  
+Iteration 32: Log likelihood = -467.25484  
+Iteration 33: Log likelihood = -467.25478  
+Iteration 34: Log likelihood = -467.25473  
+Iteration 35: Log likelihood = -467.25468  
+
+Mixed-effects logistic regression               Number of obs     =      1,195
+
+        Grouping information
+        -------------------------------------------------------------
+                        |     No. of       Observations per group
+         Group variable |     groups    Minimum    Average    Maximum
+        ----------------+--------------------------------------------
+               trial_no |          9         92      132.8        138
+                item_no |        414          2        2.9          3
+        -------------------------------------------------------------
+
+Integration method: mvaghermite                 Integration pts.  =          7
+
+                                                Wald chi2(2)      =       0.48
+Log likelihood = -467.25468                     Prob > chi2       =     0.7874
+-----------------------------------------------------------------------------------
+scored_accurately | Odds ratio   Std. err.      z    P>|z|     [95% conf. interval]
+------------------+----------------------------------------------------------------
+         model_no |
+      gemini_pro  |   .8646554   .2347874    -0.54   0.592      .507819    1.472235
+     openai_gpt5  |   1.037582   .3000002     0.13   0.898     .5887232    1.828663
+                  |
+            _cons |   60.54589   32.11304     7.74   0.000     21.40989    171.2202
+------------------+----------------------------------------------------------------
+trial_no          |
+        var(_cons)|   .0139662   .1058842                      4.92e-09    39665.22
+------------------+----------------------------------------------------------------
+trial_no>item_no  |
+        var(_cons)|    21.2662   6.541926                      11.63704    38.86308
+-----------------------------------------------------------------------------------
+Note: Estimates are transformed only in the first equation to odds ratios.
+Note: _cons estimates baseline odds (conditional on zero random effects).
+LR test vs. logistic model: chi2(2) = 255.38              Prob > chi2 = 0.0000
+
+Note: LR test is conservative and provided only for reference.
+
+. test 1.model_no = 2.model_no = 3.model_no 
+
+ ( 1)  [scored_accurately]1b.model_no - [scored_accurately]2.model_no = 0
+ ( 2)  [scored_accurately]1b.model_no - [scored_accurately]3.model_no = 0
+
+           chi2(  2) =    0.48
+         Prob > chi2 =    0.7874
+
+. local p_str = string(r(p), "%4.2f")
+
+. 
+. **********************************************************************
+. * 3. Get Margins and Format Strings
+. **********************************************************************
+. margins model_no
+
+Adjusted predictions                                     Number of obs = 1,195
+Model VCE: OIM
+
+Expression: Marginal predicted mean, predict()
+
+--------------------------------------------------------------------------------
+               |            Delta-method
+               |     Margin   std. err.      z    P>|z|     [95% conf. interval]
+---------------+----------------------------------------------------------------
+      model_no |
+claude_sonnet  |   .7759943   .0175687    44.17   0.000     .7415604    .8104283
+   gemini_pro  |   .7689386   .0160286    47.97   0.000     .7375231     .800354
+  openai_gpt5  |   .7778365   .0185053    42.03   0.000     .7415669    .8141062
+--------------------------------------------------------------------------------
+
+. matrix A = r(table)
+
+. 
+. * OpenAI (Col 1)
+. local oai_b    = string(A[1,1]*100, "%2.0f")
+
+. local oai_ll   = string(A[5,1]*100, "%2.0f")
+
+. local oai_ul   = string(A[6,1]*100, "%2.0f")
+
+. 
+. * Google (Col 2)
+. local g_b      = string(A[1,2]*100, "%2.0f")
+
+. local g_ll     = string(A[5,2]*100, "%2.0f")
+
+. local g_ul     = string(A[6,2]*100, "%2.0f")
+
+. 
+. * Claude (Col 3)
+. local claude_b = string(A[1,3]*100, "%2.0f")
+
+. local claude_ll= string(A[5,3]*100, "%2.0f")
+
+. local claude_ul= string(A[6,3]*100, "%2.0f")
+
+. 
+. **********************************************************************
+. * 4. Construct Table Row Strings
+. **********************************************************************
+. * Format: "283 (79%)"
+. local oai_n_pct    = "`n_oai' (`oai_b'%)"
+
+. local g_n_pct      = "`n_g' (`g_b'%)"
+
+. local claude_n_pct = "`n_claude' (`claude_b'%)"
+
+. 
+. * Format: "74% - 83%"
+. local oai_ci      = "`oai_ll'% - `oai_ul'%"
+
+. local g_ci        = "`g_ll'% - `g_ul'%"
+
+. local claude_ci   = "`claude_ll'% - `claude_ul'%"
+
+. 
+. **********************************************************************
+. * 5. Post to Results Table
+. **********************************************************************
+. * Ensure your postfile was defined with 5 variables to include the p-value column
+. post `postname' ("N (%)") ("`oai_n_pct'") ("`g_n_pct'") ("`claude_n_pct'") ("`p_str'")
+
+. post `postname' ("95% CI") ("`oai_ci'") ("`g_ci'") ("`claude_ci'") ("")
+
+. 
+. 
+. 
+. 
+. 
+. 
+. 
+. 
+. **********************************************************************
+. *Secondary analysis
+. **********************************************************************
+. 
+. 
+. **********************************************************************
+. * Secondary Analysis: By Item Category
+. **********************************************************************
+. melogit scored_accurately i.model_no##i.item_cat || trial_no: || item_no: , or
+
+Fitting fixed-effects model:
+
+Iteration 0:  Log likelihood = -570.24786  
+Iteration 1:  Log likelihood = -569.50353  
+Iteration 2:  Log likelihood = -569.50303  
+Iteration 3:  Log likelihood = -569.50303  
+
+Refining starting values:
+
+Grid node 0:  Log likelihood = -514.10527
+
+Fitting full model:
+
+Iteration 0:  Log likelihood = -514.10527  (not concave)
+Iteration 1:  Log likelihood = -511.19399  
+Iteration 2:  Log likelihood =  -501.8995  
+Iteration 3:  Log likelihood = -463.07665  
+Iteration 4:  Log likelihood = -457.94629  
+Iteration 5:  Log likelihood = -454.62892  
+Iteration 6:  Log likelihood = -454.42314  
+Iteration 7:  Log likelihood = -454.45061  
+Iteration 8:  Log likelihood = -454.45701  
+Iteration 9:  Log likelihood = -454.46065  
+Iteration 10: Log likelihood = -454.46212  
+Iteration 11: Log likelihood = -454.46278  
+Iteration 12: Log likelihood = -454.46306  
+Iteration 13: Log likelihood = -454.46319  
+Iteration 14: Log likelihood = -454.46325  
+Iteration 15: Log likelihood = -454.46327  
+
+Mixed-effects logistic regression               Number of obs     =      1,195
+
+        Grouping information
+        -------------------------------------------------------------
+                        |     No. of       Observations per group
+         Group variable |     groups    Minimum    Average    Maximum
+        ----------------+--------------------------------------------
+               trial_no |          9         92      132.8        138
+                item_no |        414          2        2.9          3
+        -------------------------------------------------------------
+
+Integration method: mvaghermite                 Integration pts.  =          7
+
+                                                Wald chi2(5)      =      28.27
+Log likelihood = -454.46327                     Prob > chi2       =     0.0000
+------------------------------------------------------------------------------------------------
+             scored_accurately | Odds ratio   Std. err.      z    P>|z|     [95% conf. interval]
+-------------------------------+----------------------------------------------------------------
+                      model_no |
+                   gemini_pro  |   1.370842   .4870867     0.89   0.375     .6831859    2.750653
+                  openai_gpt5  |   1.250814   .4698243     0.60   0.551     .5990576     2.61166
+                               |
+                      item_cat |
+            Statistical Items  |   .1588894   .0918136    -3.18   0.001     .0511955    .4931266
+                               |
+             model_no#item_cat |
+ gemini_pro#Statistical Items  |   .3200435   .1806647    -2.02   0.044     .1058535    .9676377
+openai_gpt5#Statistical Items  |   .6118018   .3609708    -0.83   0.405     .1924824    1.944601
+                               |
+                         _cons |   79.83562   46.13465     7.58   0.000     25.72245    247.7884
+-------------------------------+----------------------------------------------------------------
+trial_no                       |
+                     var(_cons)|   .1491692   .2536955                      .0053213    4.181553
+-------------------------------+----------------------------------------------------------------
+trial_no>item_no               |
+                     var(_cons)|   17.93295   5.639747                      9.681818    33.21596
+------------------------------------------------------------------------------------------------
+Note: Estimates are transformed only in the first equation to odds ratios.
+Note: _cons estimates baseline odds (conditional on zero random effects).
+LR test vs. logistic model: chi2(2) = 230.08              Prob > chi2 = 0.0000
+
+Note: LR test is conservative and provided only for reference.
+
+. 
+. *Tests
+. test 2.item_cat
+
+ ( 1)  [scored_accurately]2.item_cat = 0
+
+           chi2(  1) =   10.13
+         Prob > chi2 =    0.0015
+
+. local p_item_cat =  cond(r(p) < 0.001, "<0.001", string(r(p), "%4.3f"))
+
+. 
+. test 1.model_no = 2.model_no = 3.model_no
+
+ ( 1)  [scored_accurately]1b.model_no - [scored_accurately]2.model_no = 0
+ ( 2)  [scored_accurately]1b.model_no - [scored_accurately]3.model_no = 0
+
+           chi2(  2) =    0.84
+         Prob > chi2 =    0.6582
+
+. local p_other = string(r(p), "%4.2f")
+
+. 
+. test 1.model_no#2.item_cat = 2.model_no#2.item_cat = 3.model_no#2.item_cat
+
+ ( 1)  [scored_accurately]1b.model_no#2o.item_cat - [scored_accurately]2.model_no#2.item_cat = 0
+ ( 2)  [scored_accurately]1b.model_no#2o.item_cat - [scored_accurately]3.model_no#2.item_cat = 0
+
+           chi2(  2) =    4.10
+         Prob > chi2 =    0.1288
+
+. local p_stats = string(r(p), "%4.2f")
+
+. 
+. * 1. Get Margins for all combinations
+. margins item_cat#model_no
+
+Adjusted predictions                                     Number of obs = 1,195
+Model VCE: OIM
+
+Expression: Marginal predicted mean, predict()
+
+--------------------------------------------------------------------------------------------------
+                                 |            Delta-method
+                                 |     Margin   std. err.      z    P>|z|     [95% conf. interval]
+---------------------------------+----------------------------------------------------------------
+               item_cat#model_no |
+      Other Items#claude_sonnet  |   .8137401   .0249874    32.57   0.000     .7647656    .8627146
+         Other Items#gemini_pro  |    .833162   .0264007    31.56   0.000     .7814175    .8849064
+        Other Items#openai_gpt5  |   .8274838   .0270505    30.59   0.000     .7744658    .8805019
+Statistical Items#claude_sonnet  |   .7151675   .0239318    29.88   0.000     .6682621     .762073
+   Statistical Items#gemini_pro  |   .6659113   .0321249    20.73   0.000     .6029477     .728875
+  Statistical Items#openai_gpt5  |    .700697   .0264139    26.53   0.000     .6489267    .7524673
+--------------------------------------------------------------------------------------------------
+
+. matrix A = r(table)
+
+. 
+. * 2. Handle "Other Items" (Assuming item_cat == 1)
+. * Rows in r(table) for item_cat 1: Col 1 (OAI), Col 2 (Google), Col 3 (Claude)
+. 
+. foreach m in 1 2 3 {
+  2.     count if scored_accurately == 1 & model_no == `m' & item_cat == 1
+  3.     local n_`m' = r(N)
+  4.     local b_`m'  = string(A[1,`m']*100, "%2.0f")
+  5.     local ll_`m' = string(A[5,`m']*100, "%2.0f")
+  6.     local ul_`m' = string(A[6,`m']*100, "%2.0f")
+  7. }
+  242
+  248
+  222
+
+. 
+. post `postname' ("Other Items") ("") ("") ("") ("")
+
+. post `postname' ("N (%)") ("`n_1' (`b_1'%)") ("`n_2' (`b_2'%)") ("`n_3' (`b_3'%)") ("`p_other'")
+
+. post `postname' ("95% CI") ("`ll_1'% - `ul_1'%") ("`ll_2'% - `ul_2'%") ("`ll_3'% - `ul_3'%") ("")
+
+. 
+. * 3. Handle "Statistical Items" (Assuming item_cat == 2)
+. * Rows in r(table) for item_cat 2: Col 4 (OAI), Col 5 (Google), Col 6 (Claude)
+. 
+. 
+. foreach m in 1 2 3 {
+  2.     local col = `m' + 3 // Offset by 3 because first 3 columns were item_cat 1
+  3.     count if scored_accurately == 1 & model_no == `m' & item_cat == 2
+  4.     local n_`m' = r(N)
+  5.     local b_`m'  = string(A[1,`col']*100, "%2.0f")
+  6.     local ll_`m' = string(A[5,`col']*100, "%2.0f")
+  7.     local ul_`m' = string(A[6,`col']*100, "%2.0f")
+  8. }
+  89
+  80
+  77
+
+. 
+. post `postname' ("Statistical Items") ("") ("") ("") ("")
+
+. post `postname' ("N (%)") ("`n_1' (`b_1'%)") ("`n_2' (`b_2'%)") ("`n_3' (`b_3'%)") ("`p_stats'")
+
+. post `postname' ("95% CI") ("`ll_1'% - `ul_1'%") ("`ll_2'% - `ul_2'%") ("`ll_3'% - `ul_3'%") ("")
+
+. 
+. **********************************************************************
+. * Secondary Analysis: Comparison of Descriptive vs Statistical
+. **********************************************************************
+. *melogit scored_accurately i.model_no##i.item_cat || trial_no: || item_no: , or
+. 
+. * 1. Calculate ORs and p-values using lincom
+. * We store them in locals to post them all at once in a single row later.
+. 
+. * OpenAI (Model 1, Item_cat 2 vs 1)
+. lincom 2.item_cat + 1.model_no#2.item_cat, or
+
+ ( 1)  [scored_accurately]2.item_cat + [scored_accurately]1b.model_no#2o.item_cat = 0
+
+------------------------------------------------------------------------------
+scored_acc~y | Odds ratio   Std. err.      z    P>|z|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+         (1) |   .1588894   .0918136    -3.18   0.001     .0511955    .4931266
+------------------------------------------------------------------------------
+
+. local oai_or = string(r(estimate), "%4.2f") + " (" + string(r(lb), "%4.2f") + " - " + string(r(ub), "%4.2f") + ")"
+
+. local oai_p  = cond(r(p) < 0.001, "<0.001", string(r(p), "%4.3f"))
+
+. 
+. * Google (Model 2, Item_cat 2 vs 1)
+. lincom 2.item_cat + 2.model_no#2.item_cat, or
+
+ ( 1)  [scored_accurately]2.item_cat + [scored_accurately]2.model_no#2.item_cat = 0
+
+------------------------------------------------------------------------------
+scored_acc~y | Odds ratio   Std. err.      z    P>|z|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+         (1) |   .0508515   .0300081    -5.05   0.000     .0159956    .1616621
+------------------------------------------------------------------------------
+
+. local g_or = string(r(estimate), "%4.2f") + " (" + string(r(lb), "%4.2f") + " - " + string(r(ub), "%4.2f") + ")"
+
+. local g_p  = cond(r(p) < 0.001, "<0.001", string(r(p), "%4.3f"))
+
+. 
+. * Claude (Model 3, Item_cat 2 vs 1)
+. lincom 2.item_cat + 3.model_no#2.item_cat, or
+
+ ( 1)  [scored_accurately]2.item_cat + [scored_accurately]3.model_no#2.item_cat = 0
+
+------------------------------------------------------------------------------
+scored_acc~y | Odds ratio   Std. err.      z    P>|z|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+         (1) |   .0972089   .0589284    -3.85   0.000     .0296281    .3189389
+------------------------------------------------------------------------------
+
+. local claude_or = string(r(estimate), "%4.2f") + " (" + string(r(lb), "%4.2f") + " - " + string(r(ub), "%4.2f") + ")"
+
+. local claude_p  = cond(r(p) < 0.001, "<0.001", string(r(p), "%4.3f"))
+
+. 
+. **********************************************************************
+. * 2. Post the Comparison Rows
+. **********************************************************************
+. 
+. * Header Row
+. post `postname' ("Comparison: Descriptive vs Stats") ("") ("") ("") ("")
+
+. 
+. * OR (95% CI) Row
+. post `postname' ("OR (95% CI)") ("`oai_or'") ("`g_or'") ("`claude_or'") ("")
+
+. 
+. * p-value Row
+. post `postname' ("p-value") ("`oai_p'") ("`g_p'") ("`claude_p'") ("`p_item_cat'")
+
+. 
+. lincom  _b[2.item_cat] , or // claude
+
+ ( 1)  [scored_accurately]2.item_cat = 0
+
+------------------------------------------------------------------------------
+scored_acc~y | Odds ratio   Std. err.      z    P>|z|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+         (1) |   .1588894   .0918136    -3.18   0.001     .0511955    .4931266
+------------------------------------------------------------------------------
+
+. lincom  _b[2.item_cat] +_b[2.model_no#2.item_cat], or // geminai
+
+ ( 1)  [scored_accurately]2.item_cat + [scored_accurately]2.model_no#2.item_cat = 0
+
+------------------------------------------------------------------------------
+scored_acc~y | Odds ratio   Std. err.      z    P>|z|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+         (1) |   .0508515   .0300081    -5.05   0.000     .0159956    .1616621
+------------------------------------------------------------------------------
+
+. lincom  _b[2.item_cat] +_b[3.model_no#2.item_cat], or // open ai
+
+ ( 1)  [scored_accurately]2.item_cat + [scored_accurately]3.model_no#2.item_cat = 0
+
+------------------------------------------------------------------------------
+scored_acc~y | Odds ratio   Std. err.      z    P>|z|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+         (1) |   .0972089   .0589284    -3.85   0.000     .0296281    .3189389
+------------------------------------------------------------------------------
+
+. 
+. log close
+      name:  <unnamed>
+       log:  /Users/k1811974/Documents/Programming/SAPAI/validation-study-analysis/primary_analysis_log.txt
+  log type:  text
+ closed on:  19 Mar 2026, 14:20:00
+------------------------------------------------------------------------------------------------------------------------------------------------------
