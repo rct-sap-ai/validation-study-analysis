@@ -1,0 +1,118 @@
+---------------------------------------------------------------------------------------------------------
+      name:  <unnamed>
+       log:  /Users/k1811974/Documents/Programming/SAPAI/validation-study-analysis/primary_error_free.txt
+  log type:  text
+ opened on:   8 Oct 2026, 09:28:29
+
+. 
+. use "Scoring results/combined_results_long.dta", clear
+
+. 
+. *Checking for trials where primary analysis specified error free.
+. 
+. 
+. *items relating to primary analysis 
+. 
+. *items relating to primary outcome: 35 to 38
+. *items relating to secondary outcome: 39 to 42
+. 
+. gen no_major_errors = 0
+
+. replace no_major_errors = 1 if score > 1
+(1,220 real changes made)
+
+. tab score no_major_errors, missing
+
+             |    no_major_errors
+       score |         0          1 |     Total
+-------------+----------------------+----------
+ Not covered |         9          0 |         9 
+Major errors |        94          0 |        94 
+Minor Errors |         0        175 |       175 
+   No Errors |         0      1,045 |     1,045 
+-------------+----------------------+----------
+       Total |       103      1,220 |     1,323 
+
+. 
+. 
+. bysort subsection trial model: egen section_major_error_free = min(no_major_errors)
+
+. bysort subsection trial model: gen pickone = _n
+
+. keep if pickone ==1
+(999 observations deleted)
+
+. 
+. bysort model: tabstat section_major_error_free if subsection == "Primary Analysis Methods", by(trial) s
+> tats(mean)
+
+---------------------------------------------------------------------------------------------------------
+-> model = claude_sonnet
+
+Summary for variables: section_major_error_free
+Group variable: trial 
+
+           trial |      Mean
+-----------------+----------
+       actissist |         0
+          attend |         1
+          diz_ai |         1
+            eden |         1
+            home |         1
+         promise |         1
+           rapid |         1
+       reach-asd |         1
+            star |         1
+-----------------+----------
+           Total |  .8888889
+----------------------------
+
+---------------------------------------------------------------------------------------------------------
+-> model = gemini_pro
+
+Summary for variables: section_major_error_free
+Group variable: trial 
+
+           trial |      Mean
+-----------------+----------
+       actissist |         0
+          attend |         1
+          diz_ai |         0
+            eden |         1
+            home |         0
+         promise |         0
+           rapid |         0
+       reach-asd |         1
+            star |         1
+-----------------+----------
+           Total |  .4444444
+----------------------------
+
+---------------------------------------------------------------------------------------------------------
+-> model = openai_gpt5
+
+Summary for variables: section_major_error_free
+Group variable: trial 
+
+           trial |      Mean
+-----------------+----------
+       actissist |         0
+          attend |         1
+          diz_ai |         1
+            eden |         0
+            home |         1
+         promise |         0
+           rapid |         1
+       reach-asd |         1
+            star |         1
+-----------------+----------
+           Total |  .6666667
+----------------------------
+
+. 
+. log close
+      name:  <unnamed>
+       log:  /Users/k1811974/Documents/Programming/SAPAI/validation-study-analysis/primary_error_free.txt
+  log type:  text
+ closed on:   8 Oct 2026, 09:28:29
+---------------------------------------------------------------------------------------------------------
