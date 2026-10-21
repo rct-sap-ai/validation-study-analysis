@@ -4,4 +4,6 @@
 .Ruserdata
 *.DS_Store
 **/.DS_Store
+*.stswp
 
+Scoring results/.DS_Store

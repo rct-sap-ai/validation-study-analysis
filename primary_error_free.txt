@@ -2,7 +2,7 @@
       name:  <unnamed>
        log:  /Users/k1811974/Documents/Programming/SAPAI/validation-study-analysis/primary_error_free.txt
   log type:  text
- opened on:   8 Oct 2026, 09:28:29
+ opened on:   8 Oct 2026, 09:29:55
 
 . 
 . use "Scoring results/combined_results_long.dta", clear
@@ -114,5 +114,5 @@ Group variable: trial
       name:  <unnamed>
        log:  /Users/k1811974/Documents/Programming/SAPAI/validation-study-analysis/primary_error_free.txt
   log type:  text
- closed on:   8 Oct 2026, 09:28:29
+ closed on:   8 Oct 2026, 09:29:55
 ---------------------------------------------------------------------------------------------------------

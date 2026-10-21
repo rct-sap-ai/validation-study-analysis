@@ -1,0 +1,331 @@
+---------------------------------------------------------------------------------------------------------
+      name:  <unnamed>
+       log:  /Users/k1811974/Documents/Programming/SAPAI/validation-study-analysis/descriptives_by_rater_
+> log.txt
+  log type:  text
+ opened on:   8 Oct 2026, 09:29:55
+
+. 
+. 
+. 
+. use "Scoring results/unreconciled_data.dta", clear
+
+. drop _merge
+
+. rename scored_accurately  scored_accurately0
+
+. rename ItemCatgory item_cat
+
+. 
+. rename score score0
+
+. reshape long score scored_accurately, i(trial model item_no) j(rater)
+(j = 0 1 2)
+
+Data                               Wide   ->   Long
+-----------------------------------------------------------------------------
+Number of observations            1,323   ->   3,969       
+Number of variables                  13   ->   10          
+j variable (3 values)                     ->   rater
+xij variables:
+                   score0 score1 score2   ->   score
+scored_accurately0 scored_accurately1 scored_accurately2->scored_accurately
+-----------------------------------------------------------------------------
+
+. 
+. label define rater 0 "Consensus" 1 "Trial Statistician" 2 "Independent"
+
+. label values rater rater
+
+. 
+. gen model_no = .
+(3,969 missing values generated)
+
+. replace model_no = 1 if model == "claude_sonnet"
+(1,323 real changes made)
+
+. replace model_no = 2 if model == "gemini_pro"
+(1,323 real changes made)
+
+. replace model_no = 3 if model == "openai_gpt5"
+(1,323 real changes made)
+
+. 
+. assert model_no != .
+
+. 
+. tempname postname
+
+. tempfile results
+
+. postfile `postname' str50(score model1 model2 model3) using `results', replace
+(file /var/folders/cs/zpdqfx0s3l3f8nr72pqrp8nr0000gs/T//S_44207.000001 not found)
+
+. 
+. **********************************************************************
+. *Primary analysis
+. **********************************************************************
+. count if  model =="openai_gpt5" & scored_accurately !=. & rater == 0
+  441
+
+. local n_items = r(N)
+
+. post `postname' ("") ("OpenAI GPT 5") ("Google Gemini Pro") ("Claude Sonnet") 
+
+. post `postname' ("Overall Score (`n_items' items per model)") ("") ("") ("") 
+
+. 
+. 
+. **********************************************************************
+. * 1. Get Raw Counts (n) where scored_accurately == 1
+. **********************************************************************
+. 
+. levelsof rater, local(raters)
+0 1 2
+
+. 
+. foreach r in `raters' {
+  2.         preserve
+  3.         keep if rater == `r'
+  4.         
+.         local lab : label (`: value label rater') `r'
+  5.         
+.         di "Rater: `lab'"
+  6.         
+.         levelsof model, local (models)
+  7.         foreach model in `models'{
+  8.                 di "scored accurately for `model'"
+  9.                 count if scored_accurately ==1 & model == "`model'"  
+ 10.                 local n = r(N)
+ 11.                 count if model == "`model'" & scored_accurately !=.
+ 12.                 local N = r(N)
+ 13.                 local pct = (`n'/`N')*100
+ 14.                 local pct_str = string(`pct', "%2.0f")
+ 15.                 local `model'_n_pct = "`n'/`N' (`pct_str'%)"
+ 16.         }
+ 17. 
+. 
+. 
+. 
+.         **********************************************************************
+.         * 5. Post to Results Table
+.         **********************************************************************
+.         * Ensure your postfile was defined with 5 variables to include the p-value column
+.         post `postname' ("  `lab'") ("`openai_gpt5_n_pct'") ("`gemini_pro_n_pct'") ("`claude_sonnet_n_p
+> ct'") 
+ 18.         restore
+ 19. }
+(2,646 observations deleted)
+Rater: Consensus
+`"claude_sonnet"' `"gemini_pro"' `"openai_gpt5"'
+scored accurately for claude_sonnet
+  352
+  441
+scored accurately for gemini_pro
+  350
+  441
+scored accurately for openai_gpt5
+  343
+  441
+(2,646 observations deleted)
+Rater: Trial Statistician
+`"claude_sonnet"' `"gemini_pro"' `"openai_gpt5"'
+scored accurately for claude_sonnet
+  347
+  431
+scored accurately for gemini_pro
+  329
+  431
+scored accurately for openai_gpt5
+  335
+  438
+(2,646 observations deleted)
+Rater: Independent
+`"claude_sonnet"' `"gemini_pro"' `"openai_gpt5"'
+scored accurately for claude_sonnet
+  359
+  440
+scored accurately for gemini_pro
+  358
+  441
+scored accurately for openai_gpt5
+  351
+  441
+
+. 
+. 
+. **********************************************************************
+. *Secondary analysis
+. **********************************************************************
+. count if  model =="openai_gpt5" & scored_accurately !=. & rater == 0 & item_cat == 1
+  315
+
+. local n_items = r(N)
+
+. post `postname' ("Other Items (`n_items' items per model)") ("") ("") ("") 
+
+. 
+. foreach r in `raters' {
+  2.         preserve
+  3.         keep if rater == `r'
+  4.         
+.         local lab : label (`: value label rater') `r'
+  5.         
+.         di "Rater: `lab'"
+  6. 
+.         levelsof model, local (models)
+  7.         foreach model in `models'{
+  8.                 di "scored accurately for `model'"
+  9.                 count if scored_accurately ==1 & model == "`model'"  & item_cat == 1
+ 10.                 local n = r(N)
+ 11.                 count if model == "`model'" & scored_accurately !=. & item_cat == 1
+ 12.                 local N = r(N)
+ 13.                 local pct = (`n'/`N')*100
+ 14.                 local pct_str = string(`pct', "%2.0f")
+ 15.                 local `model'_n_pct = "`n'/`N' (`pct_str'%)"
+ 16.         }
+ 17. 
+. 
+. 
+. *Table goes OAI=3, gemini=2, claude=1
+. 
+.         post `postname' ("  `lab'") ("`openai_gpt5_n_pct'") ("`gemini_pro_n_pct'") ("`claude_sonnet_n_p
+> ct'") 
+ 18.         restore
+ 19. }
+(2,646 observations deleted)
+Rater: Consensus
+`"claude_sonnet"' `"gemini_pro"' `"openai_gpt5"'
+scored accurately for claude_sonnet
+  263
+  315
+scored accurately for gemini_pro
+  270
+  315
+scored accurately for openai_gpt5
+  263
+  315
+(2,646 observations deleted)
+Rater: Trial Statistician
+`"claude_sonnet"' `"gemini_pro"' `"openai_gpt5"'
+scored accurately for claude_sonnet
+  256
+  305
+scored accurately for gemini_pro
+  253
+  305
+scored accurately for openai_gpt5
+  255
+  312
+(2,646 observations deleted)
+Rater: Independent
+`"claude_sonnet"' `"gemini_pro"' `"openai_gpt5"'
+scored accurately for claude_sonnet
+  267
+  314
+scored accurately for gemini_pro
+  272
+  315
+scored accurately for openai_gpt5
+  267
+  315
+
+. 
+. * 3. Handle "Statistical Items" (item_cat == 2)
+. count if  model =="openai_gpt5" & scored_accurately !=. & rater == 0 & item_cat == 2
+  126
+
+. local n_items = r(N)
+
+. post `postname' ("Statistical Items (`n_items' items per model)") ("") ("") ("") 
+
+. 
+. foreach r in `raters' {
+  2.         preserve
+  3.         keep if rater == `r'
+  4.         
+.         local lab : label (`: value label rater') `r'
+  5.         
+.         di "Rater: `lab'"
+  6. 
+. 
+.         levelsof model, local (models)
+  7.         foreach model in `models'{
+  8.                 di "scored accurately for `model'"
+  9.                 count if scored_accurately ==1 & model == "`model'"  & item_cat == 2
+ 10.                 local n = r(N)
+ 11.                 count if model == "`model'" & scored_accurately !=. & item_cat == 2
+ 12.                 local N = r(N)
+ 13.                 local pct = (`n'/`N')*100
+ 14.                 local pct_str = string(`pct', "%2.0f")
+ 15.                 local `model'_n_pct = "`n'/`N' (`pct_str'%)"
+ 16.         }
+ 17. 
+.         *Postfile goes openai, google, claude
+. 
+.         post `postname' ("  `lab'") ("`openai_gpt5_n_pct'") ("`gemini_pro_n_pct'") ("`claude_sonnet_n_p
+> ct'") 
+ 18.         restore
+ 19. }
+(2,646 observations deleted)
+Rater: Consensus
+`"claude_sonnet"' `"gemini_pro"' `"openai_gpt5"'
+scored accurately for claude_sonnet
+  89
+  126
+scored accurately for gemini_pro
+  80
+  126
+scored accurately for openai_gpt5
+  80
+  126
+(2,646 observations deleted)
+Rater: Trial Statistician
+`"claude_sonnet"' `"gemini_pro"' `"openai_gpt5"'
+scored accurately for claude_sonnet
+  91
+  126
+scored accurately for gemini_pro
+  76
+  126
+scored accurately for openai_gpt5
+  80
+  126
+(2,646 observations deleted)
+Rater: Independent
+`"claude_sonnet"' `"gemini_pro"' `"openai_gpt5"'
+scored accurately for claude_sonnet
+  92
+  126
+scored accurately for gemini_pro
+  86
+  126
+scored accurately for openai_gpt5
+  84
+  126
+
+. 
+. 
+. postclose `postname'
+
+. use `results', clear
+
+. compress
+  variable score was str50 now str39
+  variable model1 was str50 now str13
+  variable model2 was str50 now str17
+  variable model3 was str50 now str13
+  (1,534 bytes saved)
+
+. 
+. export excel "descriptive_by_rater.xlsx", replace
+file descriptive_by_rater.xlsx saved
+
+. 
+. log close
+      name:  <unnamed>
+       log:  /Users/k1811974/Documents/Programming/SAPAI/validation-study-analysis/descriptives_by_rater_
+> log.txt
+  log type:  text
+ closed on:   8 Oct 2026, 09:29:55
+---------------------------------------------------------------------------------------------------------
