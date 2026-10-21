@@ -1,0 +1,552 @@
+---------------------------------------------------------------------------------------------------------
+      name:  <unnamed>
+       log:  /Users/k1811974/Documents/Programming/SAPAI/validation-study-analysis/sensitivity_analysis_l
+> og.txt
+  log type:  text
+ opened on:   8 Oct 2026, 09:29:53
+
+. 
+. **********************************************************************
+. *Primary analysis
+. **********************************************************************
+. count if  model =="openai_gpt5" & score !=.
+  441
+
+. local n_items = r(N)
+
+. post `postname' ("") ("OpenAI GPT 5") ("Google Gemini Pro") ("Claude Sonnet") 
+
+. post `postname' ("Overall Score (`n_items' items per model)") ("") ("") ("") 
+
+. 
+. 
+. **********************************************************************
+. * Get Raw Counts (n) 
+. **********************************************************************
+. levelsof model, local (models)
+`"claude_sonnet"' `"gemini_pro"' `"openai_gpt5"'
+
+. foreach model in `models'{
+  2.         count if model == "`model'" & score !=.
+  3.         local N = r(N)
+  4.         forvalues i = 0 (1) 3 {
+  5.                 di "scored `i' for `model'"
+  6.                 count if score ==`i' & model == "`model'"  
+  7.                 local n = r(N)
+  8. 
+.                 local pct = (`n'/`N')*100
+  9.                 local pct_str = string(`pct', "%2.0f")
+ 10.                 local `model'_`i'_n_pct = "`n' (`pct_str'%)"
+ 11.         }
+ 12. }
+  441
+scored 0 for claude_sonnet
+  8
+scored 1 for claude_sonnet
+  23
+scored 2 for claude_sonnet
+  58
+scored 3 for claude_sonnet
+  352
+  441
+scored 0 for gemini_pro
+  1
+scored 1 for gemini_pro
+  35
+scored 2 for gemini_pro
+  55
+scored 3 for gemini_pro
+  350
+  441
+scored 0 for openai_gpt5
+  0
+scored 1 for openai_gpt5
+  36
+scored 2 for openai_gpt5
+  62
+scored 3 for openai_gpt5
+  343
+
+. 
+. 
+. **********************************************************************
+. * Run Model and Get P-Value
+. **********************************************************************
+. meologit score i.model_no || trial_no: || item_no: , or
+
+Fitting fixed-effects model:
+
+Iteration 0:  Log likelihood = -893.98624  
+Iteration 1:  Log likelihood = -893.71492  
+Iteration 2:  Log likelihood = -893.71483  
+
+Refining starting values:
+
+Grid node 0:  Log likelihood =  -828.5487
+
+Fitting full model:
+
+Iteration 0:  Log likelihood =  -828.5487  (not concave)
+Iteration 1:  Log likelihood = -827.41875  (not concave)
+Iteration 2:  Log likelihood = -806.98503  
+Iteration 3:  Log likelihood = -793.11694  
+Iteration 4:  Log likelihood = -778.74665  
+Iteration 5:  Log likelihood = -776.47344  
+Iteration 6:  Log likelihood = -776.25629  
+Iteration 7:  Log likelihood = -776.23351  
+Iteration 8:  Log likelihood = -776.23292  
+Iteration 9:  Log likelihood = -776.23288  
+
+Mixed-effects ologit regression                 Number of obs     =      1,323
+
+        Grouping information
+        -------------------------------------------------------------
+                        |     No. of       Observations per group
+         Group variable |     groups    Minimum    Average    Maximum
+        ----------------+--------------------------------------------
+               trial_no |          9        147      147.0        147
+                item_no |        441          3        3.0          3
+        -------------------------------------------------------------
+
+Integration method: mvaghermite                 Integration pts.  =          7
+
+                                                Wald chi2(2)      =       0.93
+Log likelihood = -776.23288                     Prob > chi2       =     0.6274
+----------------------------------------------------------------------------------
+           score | Odds ratio   Std. err.      z    P>|z|     [95% conf. interval]
+-----------------+----------------------------------------------------------------
+        model_no |
+              2  |   .9285184    .192075    -0.36   0.720     .6190267    1.392745
+              3  |   .8227641   .1684203    -0.95   0.341     .5508507    1.228901
+-----------------+----------------------------------------------------------------
+           /cut1 |  -8.068287   .5701571                     -9.185774     -6.9508
+           /cut2 |  -4.764698   .3852871                     -5.519847   -4.009549
+           /cut3 |  -2.773822   .3289256                     -3.418504   -2.129139
+-----------------+----------------------------------------------------------------
+trial_no         |
+       var(_cons)|   .3705219   .2754141                      .0863185    1.590464
+-----------------+----------------------------------------------------------------
+trial_no>item_no |
+       var(_cons)|   6.964541   1.332706                      4.786411    10.13386
+----------------------------------------------------------------------------------
+Note: Estimates are transformed only in the first equation to odds ratios.
+LR test vs. ologit model: chi2(2) = 234.96                Prob > chi2 = 0.0000
+
+Note: LR test is conservative and provided only for reference.
+
+. test 1.model_no = 2.model_no = 3.model_no 
+
+ ( 1)  [score]1b.model_no - [score]2.model_no = 0
+ ( 2)  [score]1b.model_no - [score]3.model_no = 0
+
+           chi2(  2) =    0.93
+         Prob > chi2 =    0.6274
+
+. local p_str = string(r(p), "%4.2f")
+
+. 
+. 
+. 
+. 
+. **********************************************************************
+. * Post to Results Table
+. **********************************************************************
+. * Ensure your postfile was defined with 5 variables to include the p-value column
+. forvalues i = 0 (1) 3 {
+  2.         post `postname' ("n scored `i' (%)") ("`openai_gpt5_`i'_n_pct'") ("`gemini_pro_`i'_n_pct'") 
+> ("`claude_sonnet_`i'_n_pct'") 
+  3. }
+
+. post `postname' ("p-value for test of equal performance by model") ("`p_str'") ("") ("") 
+
+. 
+. **********************************************************************
+. *Secondary analysis
+. **********************************************************************
+. 
+. 
+. **********************************************************************
+. * Secondary Analysis: By Item Category
+. **********************************************************************
+. meologit score i.model_no##i.item_cat || trial_no: || item_no: , or
+
+Fitting fixed-effects model:
+
+Iteration 0:  Log likelihood = -893.98624  
+Iteration 1:  Log likelihood = -864.88553  
+Iteration 2:  Log likelihood = -863.28215  
+Iteration 3:  Log likelihood = -863.28072  
+Iteration 4:  Log likelihood = -863.28072  
+
+Refining starting values:
+
+Grid node 0:  Log likelihood = -802.38863
+
+Fitting full model:
+
+Iteration 0:  Log likelihood = -802.38863  (not concave)
+Iteration 1:  Log likelihood = -800.65405  
+Iteration 2:  Log likelihood = -782.67066  
+Iteration 3:  Log likelihood = -760.92231  
+Iteration 4:  Log likelihood = -757.28247  
+Iteration 5:  Log likelihood = -756.99898  
+Iteration 6:  Log likelihood = -756.99817  
+Iteration 7:  Log likelihood = -756.99824  
+
+Mixed-effects ologit regression                 Number of obs     =      1,323
+
+        Grouping information
+        -------------------------------------------------------------
+                        |     No. of       Observations per group
+         Group variable |     groups    Minimum    Average    Maximum
+        ----------------+--------------------------------------------
+               trial_no |          9        147      147.0        147
+                item_no |        441          3        3.0          3
+        -------------------------------------------------------------
+
+Integration method: mvaghermite                 Integration pts.  =          7
+
+                                                Wald chi2(5)      =      38.29
+Log likelihood = -756.99824                     Prob > chi2       =     0.0000
+--------------------------------------------------------------------------------------
+               score | Odds ratio   Std. err.      z    P>|z|     [95% conf. interval]
+---------------------+----------------------------------------------------------------
+            model_no |
+                  2  |   1.483184   .4040267     1.45   0.148     .8696077    2.529686
+                  3  |   1.168707   .3094907     0.59   0.556     .6954965    1.963886
+                     |
+            item_cat |
+  Statistical Items  |   .3079884   .1282512    -2.83   0.005     .1361698    .6966075
+                     |
+   model_no#item_cat |
+2#Statistical Items  |   .3167521   .1343396    -2.71   0.007     .1379467    .7273236
+3#Statistical Items  |   .4121077   .1727232    -2.12   0.034       .18124    .9370602
+---------------------+----------------------------------------------------------------
+               /cut1 |    -8.3745   .5991176                     -9.548749   -7.200251
+               /cut2 |  -5.025124   .4224617                     -5.853134   -4.197114
+               /cut3 |  -3.006372   .3700917                     -3.731739   -2.281006
+---------------------+----------------------------------------------------------------
+trial_no             |
+           var(_cons)|   .4316846   .3043229                      .1084173    1.718837
+---------------------+----------------------------------------------------------------
+trial_no>item_no     |
+           var(_cons)|   6.076195   1.172594                      4.162607    8.869476
+--------------------------------------------------------------------------------------
+Note: Estimates are transformed only in the first equation to odds ratios.
+LR test vs. ologit model: chi2(2) = 212.56                Prob > chi2 = 0.0000
+
+Note: LR test is conservative and provided only for reference.
+
+. 
+. *Tests
+. test 2.item_cat
+
+ ( 1)  [score]2.item_cat = 0
+
+           chi2(  1) =    8.00
+         Prob > chi2 =    0.0047
+
+. local p_item_cat =  cond(r(p) < 0.001, "<0.001", string(r(p), "%4.3f"))
+
+. 
+. test 1.model_no = 2.model_no = 3.model_no // test for differences in descriptive items
+
+ ( 1)  [score]1b.model_no - [score]2.model_no = 0
+ ( 2)  [score]1b.model_no - [score]3.model_no = 0
+
+           chi2(  2) =    2.12
+         Prob > chi2 =    0.3472
+
+. local p_other = string(r(p), "%4.2f")
+
+. 
+. test 1.model_no#2.item_cat = 2.model_no#2.item_cat = 3.model_no#2.item_cat // test of interaction term 
+> (unused result)
+
+ ( 1)  [score]1b.model_no#2o.item_cat - [score]2.model_no#2.item_cat = 0
+ ( 2)  [score]1b.model_no#2o.item_cat - [score]3.model_no#2.item_cat = 0
+
+           chi2(  2) =    8.03
+         Prob > chi2 =    0.0180
+
+. 
+. test 1.model_no+1.model_no#2.item_cat = 2.model_no+2.model_no#2.item_cat = 3.model_no+3.model_no#2.item
+> _cat // test for differences in statistical items
+
+ ( 1)  [score]1b.model_no - [score]2.model_no + [score]1b.model_no#2o.item_cat -
+       [score]2.model_no#2.item_cat = 0
+ ( 2)  [score]1b.model_no - [score]3.model_no + [score]1b.model_no#2o.item_cat -
+       [score]3.model_no#2.item_cat = 0
+
+           chi2(  2) =    6.89
+         Prob > chi2 =    0.0320
+
+. local p_stats = string(r(p), "%4.2f")
+
+. 
+. 
+. levelsof model, local (models)
+`"claude_sonnet"' `"gemini_pro"' `"openai_gpt5"'
+
+. foreach model in `models'{
+  2.         count if model == "`model'" & score !=. & item_cat == 1
+  3.         local N = r(N)
+  4.         forvalues i = 0 (1) 3 {
+  5.                 di "scored `i' for `model' , item cat 1"
+  6.                 count if score ==`i' & model == "`model'"   & item_cat == 1
+  7.                 local n = r(N)
+  8.                 local pct = (`n'/`N')*100
+  9.                 local pct_str = string(`pct', "%2.0f")
+ 10.                 local `model'_`i'_n_pct = "`n' (`pct_str'%)"
+ 11.         }
+ 12. }
+  315
+scored 0 for claude_sonnet , item cat 1
+  8
+scored 1 for claude_sonnet , item cat 1
+  12
+scored 2 for claude_sonnet , item cat 1
+  32
+scored 3 for claude_sonnet , item cat 1
+  263
+  315
+scored 0 for gemini_pro , item cat 1
+  0
+scored 1 for gemini_pro , item cat 1
+  10
+scored 2 for gemini_pro , item cat 1
+  35
+scored 3 for gemini_pro , item cat 1
+  270
+  315
+scored 0 for openai_gpt5 , item cat 1
+  0
+scored 1 for openai_gpt5 , item cat 1
+  11
+scored 2 for openai_gpt5 , item cat 1
+  41
+scored 3 for openai_gpt5 , item cat 1
+  263
+
+. 
+. 
+. *m1 = claude_sonnet 
+. *m2 = gemini_pro  
+. *m3 = openai_gpt5
+. 
+. *Table goes OAI=3, gemini=2, claude=1
+. count if item_cat == 1 & model  =="openai_gpt5"
+  315
+
+. local n_items = r(N)
+
+. post `postname' ("Other Items (`n_items' items per model)") ("") ("") ("") 
+
+. forvalues i = 0 (1) 3 {
+  2.         post `postname' ("n scored `i' (%)") ("`openai_gpt5_`i'_n_pct'") ("`gemini_pro_`i'_n_pct'") 
+> ("`claude_sonnet_`i'_n_pct'") 
+  3. }
+
+. post `postname' ("p-value for test of equal performance by model for descriptive items") ("`p_other'") 
+> ("") ("") 
+
+. 
+. * 3. Handle "Statistical Items" (item_cat == 2)
+. 
+. levelsof model, local (models)
+`"claude_sonnet"' `"gemini_pro"' `"openai_gpt5"'
+
+. foreach model in `models'{
+  2.         count if model == "`model'" & score !=. & item_cat == 2
+  3.         local N = r(N)
+  4.         forvalues i = 0 (1) 3 {
+  5.                 di "scored `i' for `model', item cat 2"
+  6.                 count if score ==`i' & model == "`model'"   & item_cat == 2
+  7.                 local n = r(N)
+  8.                 local pct = (`n'/`N')*100
+  9.                 local pct_str = string(`pct', "%2.0f")
+ 10.                 local `model'_`i'_n_pct = "`n' (`pct_str'%)"
+ 11.         }
+ 12. }
+  126
+scored 0 for claude_sonnet, item cat 2
+  0
+scored 1 for claude_sonnet, item cat 2
+  11
+scored 2 for claude_sonnet, item cat 2
+  26
+scored 3 for claude_sonnet, item cat 2
+  89
+  126
+scored 0 for gemini_pro, item cat 2
+  1
+scored 1 for gemini_pro, item cat 2
+  25
+scored 2 for gemini_pro, item cat 2
+  20
+scored 3 for gemini_pro, item cat 2
+  80
+  126
+scored 0 for openai_gpt5, item cat 2
+  0
+scored 1 for openai_gpt5, item cat 2
+  25
+scored 2 for openai_gpt5, item cat 2
+  21
+scored 3 for openai_gpt5, item cat 2
+  80
+
+. 
+. 
+. 
+. 
+. 
+. *Postfile goes openai, google, claude
+. count if item_cat == 2 & model =="openai_gpt5"
+  126
+
+. local n_items = r(N)
+
+. post `postname' ("Statistical Items (`n_items' items per model)") ("") ("") ("") 
+
+. forvalues i = 0 (1) 3 {
+  2.         post `postname' ("n scored `i' (%)") ("`openai_gpt5_`i'_n_pct'") ("`gemini_pro_`i'_n_pct'") 
+> ("`claude_sonnet_`i'_n_pct'")
+  3. }
+
+. post `postname' ("p-value for test of equal performance by model for statistical items") ("`p_stats'") 
+> ("") ("") 
+
+. 
+. **********************************************************************
+. * Secondary Analysis: Comparison of Descriptive vs Statistical
+. **********************************************************************
+. *melogit scored_accurately i.model_no##i.item_cat || trial_no: || item_no: , or
+. 
+. * 1. Calculate ORs and p-values using lincom
+. * We store them in locals to post them all at once in a single row later.
+. 
+. * OpenAI (Model 3, Item_cat 2 vs 1)
+. lincom 2.item_cat + 3.model_no#2.item_cat, or
+
+ ( 1)  [score]2.item_cat + [score]3.model_no#2.item_cat = 0
+
+------------------------------------------------------------------------------
+       score | Odds ratio   Std. err.      z    P>|z|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+         (1) |   .1269244   .0525721    -4.98   0.000     .0563609    .2858332
+------------------------------------------------------------------------------
+
+. local oai_or = string(r(estimate), "%4.2f") + " (" + string(r(lb), "%4.2f") + " - " + string(r(ub), "%4
+> .2f") + ")"
+
+. local oai_p  = cond(r(p) < 0.001, "<0.001", string(r(p), "%4.3f"))
+
+. 
+. * Google (Model 2, Item_cat 2 vs 1)
+. lincom 2.item_cat + 2.model_no#2.item_cat, or
+
+ ( 1)  [score]2.item_cat + [score]2.model_no#2.item_cat = 0
+
+------------------------------------------------------------------------------
+       score | Odds ratio   Std. err.      z    P>|z|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+         (1) |    .097556   .0411622    -5.52   0.000      .042668    .2230515
+------------------------------------------------------------------------------
+
+. local g_or = string(r(estimate), "%4.2f") + " (" + string(r(lb), "%4.2f") + " - " + string(r(ub), "%4.2
+> f") + ")"
+
+. local g_p  = cond(r(p) < 0.001, "<0.001", string(r(p), "%4.3f"))
+
+. 
+. * Claude (Model 1, Item_cat 2 vs 1)
+. lincom 2.item_cat + 1.model_no#2.item_cat, or
+
+ ( 1)  [score]2.item_cat + [score]1b.model_no#2o.item_cat = 0
+
+------------------------------------------------------------------------------
+       score | Odds ratio   Std. err.      z    P>|z|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+         (1) |   .3079884   .1282512    -2.83   0.005     .1361698    .6966075
+------------------------------------------------------------------------------
+
+. local claude_or = string(r(estimate), "%4.2f") + " (" + string(r(lb), "%4.2f") + " - " + string(r(ub), 
+> "%4.2f") + ")"
+
+. local claude_p  = cond(r(p) < 0.001, "<0.001", string(r(p), "%4.3f"))
+
+. 
+. **********************************************************************
+. * Post the Comparison Rows
+. **********************************************************************
+. 
+. * Header Row
+. post `postname' ("Comparison: Descriptive vs Stats") ("") ("") ("") 
+
+. 
+. * OR (95% CI) Row
+. post `postname' ("OR (95% CI)") ("`oai_or'") ("`g_or'") ("`claude_or'") 
+
+. 
+. * p-value Row
+. post `postname' ("p-value") ("`oai_p'") ("`g_p'") ("`claude_p'") // ("`p_item_cat'")
+
+. 
+. lincom  _b[2.item_cat] , or // claude
+
+ ( 1)  [score]2.item_cat = 0
+
+------------------------------------------------------------------------------
+       score | Odds ratio   Std. err.      z    P>|z|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+         (1) |   .3079884   .1282512    -2.83   0.005     .1361698    .6966075
+------------------------------------------------------------------------------
+
+. lincom  _b[2.item_cat] +_b[2.model_no#2.item_cat], or // geminai
+
+ ( 1)  [score]2.item_cat + [score]2.model_no#2.item_cat = 0
+
+------------------------------------------------------------------------------
+       score | Odds ratio   Std. err.      z    P>|z|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+         (1) |    .097556   .0411622    -5.52   0.000      .042668    .2230515
+------------------------------------------------------------------------------
+
+. lincom  _b[2.item_cat] +_b[3.model_no#2.item_cat], or // open ai
+
+ ( 1)  [score]2.item_cat + [score]3.model_no#2.item_cat = 0
+
+------------------------------------------------------------------------------
+       score | Odds ratio   Std. err.      z    P>|z|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+         (1) |   .1269244   .0525721    -4.98   0.000     .0563609    .2858332
+------------------------------------------------------------------------------
+
+. 
+. 
+. 
+. 
+. postclose `postname'
+
+. use `results', clear
+
+. compress
+  variable score was str100 now str68
+  variable model1 was str100 now str18
+  variable model2 was str100 now str18
+  variable model3 was str100 now str18
+  (6,116 bytes saved)
+
+. 
+. export excel "results_table_ordinal.xlsx", replace
+file results_table_ordinal.xlsx saved
+
+. 
+. log close
+      name:  <unnamed>
+       log:  /Users/k1811974/Documents/Programming/SAPAI/validation-study-analysis/sensitivity_analysis_l
+> og.txt
+  log type:  text
+ closed on:   8 Oct 2026, 09:29:55
+---------------------------------------------------------------------------------------------------------
