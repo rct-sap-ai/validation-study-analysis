@@ -20,6 +20,16 @@ data |> group_by(model) |>
             correct = sum(score == 0),
             total = n())
 
+data |> 
+  group_by(model, subsection, trial) |> 
+  mutate(no_major_errors = case_when(score %in% c(0, 1) ~ 1,
+                               TRUE ~ 0)) |> 
+  summarise(error_free = min(no_major_errors)) |> 
+  ungroup() |> 
+  group_by(model, subsection) |> 
+  summarise(prop_error_free = sum(error_free/9)) |> 
+  filter(subsection == "Primary Analysis Methods")
+
 
 data |> ggplot(aes(x = subsection, fill = score)) +
   geom_bar(position = "fill", colour = "grey") +
